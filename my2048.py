@@ -35,7 +35,8 @@ new_button_size = (120, 50)
 undo_button_position = (360, 160)
 undo_button_size = (100, 50)
 
-def seticon(iconname):
+
+def set_icon(iconname):
     icon = pygame.Surface((32, 32))
     icon_img = pygame.image.load(iconname)
     rawicon = pygame.transform.scale(icon_img, (32,32))
@@ -44,7 +45,8 @@ def seticon(iconname):
             icon.set_at((i, j), rawicon.get_at((i, j)))
     pygame.display.set_icon(icon)
 
-seticon(icon)
+
+set_icon(icon)
 
 
 class NewGame(object):
@@ -71,7 +73,7 @@ class NewGame(object):
             self.put_num()
 
     def put_num(self):
-        x = random.choice([2,2,2,2,4])
+        x = random.choice([2, 2, 2, 2, 4])
         self.get_zero()
         i, j = random.choice(self.zero_items)
         self.data[i][j] = x
@@ -87,8 +89,8 @@ class NewGame(object):
     def reset(self):
         self.data = [[0 for i in range(num)] for j in range(num)]
         self.scores = 0
-        self.get_zero()
         self.init_data()
+        self.get_zero()
 
     def check_result(self):
         if len(self.zero_items):
@@ -234,6 +236,7 @@ class Boxdraw(object):
             fs.center = (x + w / 2, y + h/ 2)
             self.surface.blit(ft, fs)
 
+
 def draw_base():
     # draw the 2048 box
     position = (20, 20)
@@ -280,8 +283,6 @@ def draw_base():
     restartbox.render()
 
     # draw the restart button
-    position = (20, 160)
-    size = (120, 50)
     value = "Restart"
     value_col = (255,127,80)
     value_size = 40
@@ -294,6 +295,7 @@ def draw_base():
     value_size = 40
     undobox = Boxdraw(c=default_col, p=undo_button_position, s=undo_button_size, v=value, vc=value_col, vs=value_size)
     undobox.render()
+
 
 def get_color(v=0):
     colors = {
@@ -314,7 +316,8 @@ def get_color(v=0):
     }
     return colors[v] if v in colors else colors[0]
 
-def game_box(v=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], score=0):
+
+def game_box(v=[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], score=0):
     # draw the game area
     global best
     screen.fill(default_col)
@@ -330,13 +333,13 @@ def game_box(v=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], score=0):
     # start to draw the game boxes
     for i in range(4):
         for j in range(4):
-            bv = v[j][i] #2**(i*4+j)
+            bv = v[j][i]  #2**(i*4+j)
             x = position[0] + (i + 1) * 8 + i * 100
             y = position[1] + (j + 1) * 8 + j * 100
             block.fill(get_color(bv))
             screen.blit(block, (x, y))
             if bv:
-                if bv<32:
+                if bv < 32:
                     ft = num_font.render(str(bv), True, (119, 110, 101))
                 else:
                     ft = num_font.render(str(bv), True, (249, 246, 242))
@@ -389,9 +392,6 @@ while True:
 
             if not game.check_result():
                 print "Game Over!"
-
-        #for i in game.data:
-        #S    print i
 
     game_box(v=game.data, score=game.scores)
     pygame.display.update()
