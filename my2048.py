@@ -29,10 +29,10 @@ screen.fill(default_col)
 score_font = pygame.font.SysFont("courier", 28)
 num_font = pygame.font.SysFont("courier", 58)
 
-new_button_position = (20, 160)
+new_button_position = (20, 145)
 new_button_size = (120, 50)
 
-undo_button_position = (360, 160)
+undo_button_position = (355, 145)
 undo_button_size = (100, 50)
 
 
@@ -54,6 +54,7 @@ class NewGame(object):
         self.data = [[0 for i in range(num)] for j in range(num)]
         self.scores = 0
         self.zero_items = []
+        self.undo_list = []
 
     def get_score(self):
         return self.scores
@@ -65,6 +66,18 @@ class NewGame(object):
             with open(best_score, "w") as fb:
                 fb.write(str(best))
                 fb.close()
+
+    def update_undo(self):
+        if len(self.undo_list) > 5:
+            self.undo_list.remove(self.undo_list[0])
+        self.undo_list.append(self.data)
+
+    def undo(self):
+        if self.undo_list:
+            self.data = self.undo_list.pop()
+            return True
+        else:
+            return False
 
     def init_data(self):
         self.get_zero()
@@ -88,6 +101,7 @@ class NewGame(object):
 
     def reset(self):
         self.data = [[0 for i in range(num)] for j in range(num)]
+        self.undo_list = []
         self.scores = 0
         self.init_data()
         self.get_zero()
@@ -113,6 +127,7 @@ class NewGame(object):
             tmp_data = fc(tmp_data)
 
         if self.data != tmp_data:
+            self.update_undo()
             self.data = tmp_data
             self.update_best()
             return True
@@ -211,32 +226,6 @@ class NewGame(object):
 
         return data
 
-
-class Boxdraw(object):
-    def __init__(self, sf=screen, c=[], p=[], s=[], v="", vc=default_col, vs=[]):
-        self.surface = sf
-        self.value = v
-        self.value_col = vc
-        self.value_size = vs
-        self.col = c
-        self.position = p
-        self.size = s
-
-    def render(self):
-        w, h = self.size
-        x, y = self.position
-        # draw the box
-        pygame.draw.rect(self.surface, self.col, ((x, y), (w, h)), 0)
-        if self.value:
-            # fix with the value
-            self.value_size = self.value_size if self.value_size else h-1
-            menu_font = pygame.font.SysFont("Arial", self.value_size)
-            ft = menu_font.render(self.value, True, self.value_col)
-            fs = ft.get_rect()
-            fs.center = (x + w / 2, y + h/ 2)
-            self.surface.blit(ft, fs)
-
-
 def draw_base():
     # draw the 2048 box
     position = (20, 20)
@@ -244,57 +233,75 @@ def draw_base():
     value = "2048"
     value_col = (105, 105, 105)
     value_size = 100
-    title = Boxdraw(c=default_col, p=position, s=size, v=value, vc=value_col, vs=value_size)
-    title.render()
+    pygame.draw.rect(screen, default_col, (position, size), 0)
+    title_font = pygame.font.SysFont("Arial", value_size)
+    title = title_font.render(value, True, value_col)
+    fs = title.get_rect()
+    fs.center = (110, 60)
+    screen.blit(title, fs)
 
     # draw the score boxes
     position = (230, 20)
     size = (110, 80)
     col = (205, 201, 201)
-    scorebox = Boxdraw(c=col, p=position, s=size)
-    scorebox.render()
+    pygame.draw.rect(screen, col, (position, size), 0)
 
-    position = (235, 30)
-    size = (100, 30)
     value = "Score"
-    value_col = (253,245,230)
-    sbox = Boxdraw(c=col, p=position, s=size, v=value, vc=value_col)
-    sbox.render()
+    value_col = (253, 245, 230)
+    scores_font = pygame.font.SysFont("Arial", 30)
+    ssf = scores_font.render(value, True, value_col)
+    fs = ssf.get_rect()
+    fs.center = (285, 45)
+    screen.blit(ssf, fs)
 
     # draw the Best Record boxes
-    position = (350,20)
-    size = (110,80)
-    bestbox = Boxdraw(c=col, p=position, s=size)
-    bestbox.render()
+    position = (350, 20)
+    size = (110, 80)
+    pygame.draw.rect(screen, col, (position, size), 0)
 
-    position = (355, 30)
-    size = (100, 30)
     value = "Best"
-    bbox = Boxdraw(c=col, p=position, s=size, v=value, vc=value_col)
-    bbox.render()
+    best_font = pygame.font.SysFont("Arial", 30)
+    bsf = best_font.render(value, True, value_col)
+    fs = bsf.get_rect()
+    fs.center = (405, 45)
+    screen.blit(bsf, fs)
 
     # draw the information area
-    position = (20, 110)
-    size = (440, 50)
-    value = "Join the numbers and get the 2048 tile!"
+    value = "Join the numbers and get the 2048 block!"
     value_col = (130, 130, 130)
-    value_size = 27
-    restartbox = Boxdraw(c=default_col, p=position, s=size, v=value, vc=value_col, vs=value_size)
-    restartbox.render()
+    info_font = pygame.font.SysFont("Arial", 27)
+    isf = info_font.render(value, True, value_col)
+    fs = isf.get_rect()
+    fs.center = (240, 130)
+    screen.blit(isf, fs)
 
     # draw the restart button
+    button_color = (255, 240, 245)
+
+    bg_color = (220, 220, 220)
+    bg_positon = (new_button_position[0]+3, new_button_position[1]+3)
+    pygame.draw.rect(screen, bg_color, (bg_positon, new_button_size), 0)
+    pygame.draw.rect(screen, button_color, (new_button_position, new_button_size), 0)
+
     value = "Restart"
     value_col = (255,127,80)
-    value_size = 40
-    restartbox = Boxdraw(c=default_col, p=new_button_position, s=new_button_size, v=value, vc=value_col, vs=value_size)
-    restartbox.render()
+    value_size = 36
+    rt_font = pygame.font.SysFont("Arial", value_size)
+    rtf = rt_font.render(value, True, value_col)
+    fs = rtf.get_rect()
+    fs.center = (80, 170)
+    screen.blit(rtf, fs)
 
     # draw the undo button
+    bg_positon = (undo_button_position[0] + 3, undo_button_position[1] + 3)
+    pygame.draw.rect(screen, bg_color, (bg_positon, undo_button_size), 0)
+    pygame.draw.rect(screen, button_color, (undo_button_position, undo_button_size), 0)
     value = "Undo"
-    value_col = (255,127,80)
-    value_size = 40
-    undobox = Boxdraw(c=default_col, p=undo_button_position, s=undo_button_size, v=value, vc=value_col, vs=value_size)
-    undobox.render()
+    rt_font = pygame.font.SysFont("Arial", value_size)
+    udf = rt_font.render(value, True, value_col)
+    fs = udf.get_rect()
+    fs.center = (405, 170)
+    screen.blit(udf, fs)
 
 
 def get_color(v=0):
@@ -359,6 +366,7 @@ def game_box(v=[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], score=0
 
 game = NewGame()
 game.init_data()
+error_flag = False
 while True:
     for event in pygame.event.get():
         #print event
@@ -369,12 +377,21 @@ while True:
             x, y = new_button_position
             w, h = new_button_size
             if x < p_x < x+w and y < p_y < y+h:
+                error_flag = False
                 game.reset()
             x, y = undo_button_position
             w, h = undo_button_size
             if x < p_x < x+w and y < p_y < y+h:
-                print "Undo button clicked"
+                r = game.undo()
+                #print "enter undo logic"
+                #print game.undo_list
+                if not r:
+                    # draw a error info box
+                    error_flag = True
+                    error_info1 = "Undo Failed!"
+                    error_info2 = "Press any key to continue..."
         elif event.type == KEYDOWN:
+            error_flag = False
             is_moved = False
             if event.key == K_LEFT:
                 is_moved = game.move("left")
@@ -391,7 +408,29 @@ while True:
                 game.put_num()
 
             if not game.check_result():
-                print "Game Over!"
+                error_flag = True
+                error_info1 = "Game Over!"
+                error_info2 = "Press 'Restart' for new game"
 
     game_box(v=game.data, score=game.scores)
+    if error_flag:
+        bg = pygame.Surface((320, 120))
+        bg.fill((220, 220, 220))
+        screen.blit(bg, (85,325))
+        errbox = pygame.Surface((320, 120))
+        errbox.fill((255, 228, 225))
+        screen.blit(errbox, (80, 320))
+        # error msg 1
+        ib_font = pygame.font.SysFont("Arial", 60)
+        ibf = ib_font.render(error_info1, True, (105, 105, 105))
+        fs = ibf.get_rect()
+        fs.center = (240, 365)
+        screen.blit(ibf, fs)
+        #error msg 2
+        ib_font = pygame.font.SysFont("Arial", 30)
+        ibf = ib_font.render(error_info2, True, (105, 105, 105))
+        fs = ibf.get_rect()
+        fs.center = (240, 410)
+        screen.blit(ibf, fs)
+
     pygame.display.update()
